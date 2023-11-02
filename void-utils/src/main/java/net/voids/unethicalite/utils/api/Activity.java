@@ -1,4 +1,4 @@
-package net.voids.unethicalite.voidaio.utils.api;
+package net.voids.unethicalite.utils.api;
 
 import lombok.Value;
 

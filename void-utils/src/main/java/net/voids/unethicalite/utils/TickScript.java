@@ -1,4 +1,4 @@
-package net.voids.unethicalite.voidaio.utils;
+package net.voids.unethicalite.utils;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +14,8 @@ import net.unethicalite.api.input.Keyboard;
 import net.unethicalite.api.widgets.Dialog;
 import net.unethicalite.api.widgets.Widgets;
 import net.unethicalite.client.Static;
-import net.voids.unethicalite.voidaio.utils.api.Activity;
-import net.voids.unethicalite.voidaio.utils.tasks.Task;
+import net.voids.unethicalite.utils.api.Activity;
+import net.voids.unethicalite.utils.tasks.Task;
 import org.slf4j.Logger;
 
 import java.awt.event.KeyEvent;
@@ -57,43 +57,58 @@ public abstract class TickScript extends Plugin
     @Subscribe
     private void onGameTick(GameTick event)
     {
+        log.info("game tick!");
         if (!running)
         {
+            log.info("script disabled - return.");
             //script is not running ignore tick.
             return;
         }
-
         try
         {
+
             if (current == null)
             {
-                //no current task - attempt to load one.
+                log.info("1");
+                //no current task - attempt to load one, this should only really happen on plugin boot.
                 current = schedule(this::tick);
-            }
-            else if (current.isDone())
-            {
-                //current task has ceased execution (completed).
-                if (next == null)
-                {
-                    //no queued task available - attempt to load one.
-                    current = schedule(this::tick);
-                }
-                else
-                {
-                    //a queued task exists - set it as the current task.
-                    current = next;
-                    next = null;
-                }
             }
             else
             {
-                //current task is not yet done
-                if (next == null)
+                current.get(); //blocking.
+
+                if (current.isDone())
                 {
-                    //attempt to queue some task.
-                    next = schedule(this::tick);
+                    log.info("current is done.");
+                    current = null;
                 }
             }
+//
+//                //current task has ceased execution (completed).
+//                if (next == null)
+//                {
+//                    log.info("2");
+//                    //no queued task available - attempt to load one.
+//                    current = schedule(this::tick);
+//                }
+//                else
+//                {
+//                    log.info("3");
+//                    //a queued task exists - set it as the current task.
+//                    current = next;
+//                    next = null;
+//                }
+//            }
+//            else
+//            {
+//                log.info("4");
+//                //current task is not yet done
+//                if (next == null)
+//                {
+//                    //attempt to queue some task.
+//                    next = schedule(this::tick);
+//                }
+//            }
 
             checkActionTimeout();
             checkIdleLogout();
@@ -106,23 +121,36 @@ public abstract class TickScript extends Plugin
 
     protected void tick()
     {
+        log.info("calling tick");
         //select one task - and execute if predicate is valid. Tasks that occur earlier in the list, have priority over those later.
         //e.g a task in index 0 and a task in index 1 may both have valid predicates, such that t.validate() == true , however, only the task in index 0 will execute.
         for (Task t : tasks)
         {
+            log.info("itter");
+            log.info(String.valueOf(t.validate()));
+            log.info("pre-ifs");
             if (t.validate())
             {
+                log.info("was valid.");
                 //task predicate is valid - so execute.
                 getLogger().info(t.getStatus());
                 setActivity(t.getActivity());
+                log.info("executing.");
                 t.execute();
+                log.info("executed.");
                 break;
             }
+            else
+            {
+                log.info("invalid validation");
+            }
         }
+        log.info("post-for-loop tick");
     }
 
     protected final void addTask(Task task)
     {
+        log.info("adding task");
         Static.getEventBus().register(task);
 
         tasks.add(task);
@@ -168,17 +196,17 @@ public abstract class TickScript extends Plugin
 
     protected void onStop()
     {
-
+        log.info("default on stop");
     }
 
     protected void onStart()
     {
-
+        log.info("default on start");
     }
 
     public final void stop()
     {
-        log.info("Stopping " + this.getName());
+        log.info("Stopping tickscript: " + this.getName());
         running = false;
 
         for (Task task : tasks)
@@ -194,9 +222,10 @@ public abstract class TickScript extends Plugin
         onStop();
     }
 
+
     public final void start()
     {
-        log.info("Starting " + this.getName());
+        log.info("Starting tickscript: " + this.getName());
         running = true;
 
         previousActivity = Activity.IDLE;
@@ -209,6 +238,7 @@ public abstract class TickScript extends Plugin
     @Override
     protected final void startUp()
     {
+        start();
         executor = Executors.newSingleThreadScheduledExecutor();
     }
 
@@ -339,7 +369,7 @@ public abstract class TickScript extends Plugin
 
         return executor.schedule(
                 runnable,
-                1000, //change this? not sure what is good amount.
+                5000, //change this? not sure what is good amount.
                 TimeUnit.MILLISECONDS
         );
     }

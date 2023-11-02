@@ -1,7 +1,7 @@
 version = "0.0.1"
 
-project.extra["PluginName"] = "VOIDAIO"
-project.extra["PluginDescription"] = "Does it all."
+project.extra["PluginName"] = "void-utils"
+project.extra["PluginDescription"] = "Void utility plugin."
 
 tasks {
     jar {

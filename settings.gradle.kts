@@ -1,6 +1,8 @@
 rootProject.name = "VOIDAIO"
 
-include("VOIDAIO")
+include("void-utils")
+include("void-woodcutting")
+include("void-test")
 
 for (project in rootProject.children) {
     project.apply {

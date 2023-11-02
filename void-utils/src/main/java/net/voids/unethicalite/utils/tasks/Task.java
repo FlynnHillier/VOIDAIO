@@ -1,6 +1,6 @@
-package net.voids.unethicalite.voidaio.utils.tasks;
+package net.voids.unethicalite.utils.tasks;
 
-import  net.voids.unethicalite.voidaio.utils.api.Activity;
+import  net.voids.unethicalite.utils.api.Activity;
 
 public abstract class Task
 {
