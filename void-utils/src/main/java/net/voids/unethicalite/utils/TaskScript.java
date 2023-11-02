@@ -25,6 +25,7 @@ public class TaskScript extends Plugin
 
     protected final List<Task> tasks = new ArrayList<>();
     Activity currentActivity = Activity.IDLE;
+    Activity previousActivity;
 
     private ExecutorService executor;
 
@@ -35,16 +36,9 @@ public class TaskScript extends Plugin
     @Subscribe
     private void onGameTick(GameTick event)
     {
-        if (activeTask == null)
+        if (activeTask == null || activeTask.isDone())
         {
             activeTask = executor.submit(this::tick);
-        }
-        else
-        {
-            if (activeTask.isDone())
-            {
-                activeTask = null;
-            }
         }
     }
 
@@ -63,6 +57,30 @@ public class TaskScript extends Plugin
     }
 
 
+    public final boolean isCurrentActivity(Activity activity)
+    {
+        return currentActivity == activity;
+    }
+
+    public final boolean wasPreviousActivity(Activity activity)
+    {
+        return previousActivity == activity;
+    }
+
+    public void setActivity(Activity activity)
+    {
+        if (activity == Activity.IDLE && currentActivity != Activity.IDLE)
+        {
+            previousActivity = currentActivity;
+        }
+
+        currentActivity = activity;
+
+        if( activity != Activity.IDLE)
+        {
+            //set last action tick?
+        }
+    }
 
 
     protected final <T extends Task> void addTask(Class<T> type)

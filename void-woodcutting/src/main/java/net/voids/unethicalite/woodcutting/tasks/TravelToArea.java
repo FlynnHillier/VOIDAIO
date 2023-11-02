@@ -28,7 +28,7 @@ public class TravelToArea extends Task
     @Override
     public boolean validate()
     {
-        return (!Inventory.isFull() || Static.getClient().getTickCount() - plugin.getLastBankTick() <= 2)
+        return !Inventory.isFull()
                 && !TREE_PATCH_LUMBRIDGE.contains(Players.getLocal().getWorldLocation());
     }
 

@@ -29,17 +29,6 @@ public class WoodCutting extends TaskScript
     @Inject
     private Utils utils;
 
-
-    @Getter
-    @Setter
-    private int lastBankTick;
-
-//    @Override
-//    public Logger getLogger()
-//    {
-//        return log;
-//    }
-
     @Override
     protected void onStart()
     {

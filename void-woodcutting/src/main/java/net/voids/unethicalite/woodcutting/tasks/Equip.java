@@ -27,14 +27,11 @@ public class Equip extends Task
     @Override
     public void execute()
     {
-        plugin.getLogger().info("getting inv axe");
         Optional<Item> axe = getInventoryAxe();
-        plugin.getLogger().info("got inv axe");
 
         if (axe.isPresent())
         {
-            plugin.getLogger().info("axe is present.");
-            Time.sleepTicks(5);
+            Time.sleepTick();
             axe.get().interact("Wield");
         }
         else
