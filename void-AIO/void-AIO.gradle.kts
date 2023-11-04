@@ -1,4 +1,4 @@
-version = "0.0.1"
+version = "0.0.2"
 
 project.extra["PluginName"] = "void-AIO"
 project.extra["PluginDescription"] = "does the fokkin lot."
@@ -6,6 +6,7 @@ project.extra["PluginDescription"] = "does the fokkin lot."
 dependencies {
     compileOnly(project(":void-utils"))
     compileOnly(project(":void-woodcutting"))
+    compileOnly("io.socket:socket.io-client:2.1.0")
 }
 
 tasks {
@@ -19,7 +20,8 @@ tasks {
                 "Plugin-License" to project.extra["PluginLicense"],
                 "Plugin-Dependencies" to
                         arrayOf(
-                            nameToId("void-utils")
+                            nameToId("void-utils"),
+                            nameToId("void-woodcutting")
                         ).joinToString(),
             ))
         }

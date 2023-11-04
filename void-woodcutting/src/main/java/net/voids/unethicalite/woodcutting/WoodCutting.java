@@ -7,7 +7,10 @@ import net.voids.unethicalite.woodcutting.tasks.Drop;
 import net.voids.unethicalite.woodcutting.tasks.Equip;
 import net.voids.unethicalite.woodcutting.tasks.TravelToArea;
 
+import javax.inject.Singleton;
+
 @Slf4j
+@Singleton
 public class WoodCutting extends Job
 {
     public WoodCutting()

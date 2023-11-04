@@ -11,6 +11,13 @@ import java.util.List;
 import com.google.inject.Injector;
 import org.slf4j.Logger;
 
+//TODO: consider that some tasks may need to be interrupted (e.g) running through a dungeon
+// - your health gets low - you want to carry on running but some task shoudl run that eats.
+// - currently, unless you return from the task which is running, the 'eat' task cannot fire.
+// - add some flag to 'running task' which specifies it *can* be interrupted. In this scenario
+// - other tasks validates should run - and should be executed with precident.
+// - (this idea would chain well with Activities)
+
 
 @Slf4j
 public abstract class Job {
