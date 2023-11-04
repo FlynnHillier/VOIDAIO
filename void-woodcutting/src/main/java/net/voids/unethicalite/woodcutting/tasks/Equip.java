@@ -16,7 +16,7 @@ import java.util.Optional;
 public class Equip extends Task
 {
     @Inject
-    private WoodCutting plugin;
+    private WoodCutting job;
 
     @Override
     public String getStatus()
@@ -36,7 +36,7 @@ public class Equip extends Task
         }
         else
         {
-            plugin.getLogger().info("axe is not present.");
+            job.getLogger().info("axe is not present.");
         }
     }
 

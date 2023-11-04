@@ -1,9 +1,12 @@
 package net.voids.unethicalite.utils.tasks;
 
+import lombok.Getter;
 import  net.voids.unethicalite.utils.api.Activity;
 
 public abstract class Task
 {
+    @Getter
+    private boolean isSafeToEnd = true;
 
     public Activity getActivity()
     {

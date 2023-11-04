@@ -1,43 +1,28 @@
 package net.voids.unethicalite.woodcutting;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-//import net.runelite.client.plugins.PluginDependency;
-import net.runelite.client.plugins.PluginDependency;
-import net.runelite.client.plugins.PluginDescriptor;
-import net.voids.unethicalite.utils.TaskScript;
-//import net.voids.unethicalite.utils.TickScript;
-//import net.voids.unethicalite.utils.Utils;
-import net.voids.unethicalite.utils.Utils;
-import net.voids.unethicalite.woodcutting.tasks.*;
-import org.pf4j.Extension;
-//import org.slf4j.Logger;
+import net.voids.unethicalite.utils.jobs.Job;
+import net.voids.unethicalite.woodcutting.tasks.Chop;
+import net.voids.unethicalite.woodcutting.tasks.Drop;
+import net.voids.unethicalite.woodcutting.tasks.Equip;
+import net.voids.unethicalite.woodcutting.tasks.TravelToArea;
 
-import javax.inject.Inject;
-
-@PluginDescriptor(
-        name = "void-woodcutting",
-        description = "getting wood.",
-        enabledByDefault = true
-)
-@PluginDependency(Utils.class)
 @Slf4j
-@Extension
-public class WoodCutting extends TaskScript
+public class WoodCutting extends Job
 {
-    @Inject
-    private Utils utils;
+    public WoodCutting()
+    {
+        addTask(new Equip());
+        addTask(new Drop());
+        addTask(new TravelToArea());
+        addTask(new Chop());
+    }
+
 
     @Override
-    protected void onStart()
-    {
-        getLogger().info("starting void-woodcutter.");
-        super.onStart();
-
-        addTask(Equip.class);
-        addTask(Drop.class);
-        addTask(TravelToArea.class);
-        addTask(Chop.class);
+    public String getTitle() {
+        return "woodcutting";
     }
+
+
 }

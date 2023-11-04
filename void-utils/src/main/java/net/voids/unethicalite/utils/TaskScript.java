@@ -43,7 +43,7 @@ public class TaskScript extends Plugin
     }
 
 
-    protected void tick()
+    public void tick()
     {
         for (Task t: tasks)
         {
