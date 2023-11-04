@@ -2,8 +2,8 @@ rootProject.name = "VOIDAIO"
 
 include("void-utils")
 include("void-woodcutting")
-include("void-test")
 include("void-AIO")
+include("void-command")
 
 for (project in rootProject.children) {
     project.apply {
