@@ -1,22 +1,23 @@
 package net.voids.unethicalite.woodcutting.tasks;
 
-import javax.inject.Inject;
 
 import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.Item;
 import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.items.Equipment;
 import net.unethicalite.api.items.Inventory;
-//import net.voids.unethicalite.utils.api.Activity;
+import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
-import net.voids.unethicalite.woodcutting.WoodCutting;
 
 import java.util.Optional;
 
 public class Equip extends Task
 {
-    @Inject
-    private WoodCutting job;
+    public Equip(Job job)
+    {
+        super(job);
+    }
+
 
     @Override
     public String getStatus()

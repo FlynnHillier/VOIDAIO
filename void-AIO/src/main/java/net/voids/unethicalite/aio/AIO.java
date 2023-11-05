@@ -33,16 +33,13 @@ public class AIO extends Plugin
     ExecutorService executor;
 
 
-
-
     @Subscribe
-    public void onGameTick(GameTick event)
+    private void onGameTick(GameTick event)
     {
-        Job currentJob = sm.tick(); //fetch most appropriate job.
+        Job currentJob = sm.tick();
 
         if (currentJob != null && (activeJobTick == null || activeJobTick.isDone()))
         {
-            //tick current Job
             executor.submit(currentJob::tick);
         }
     }

@@ -2,6 +2,7 @@ package net.voids.unethicalite.woodcutting.tasks;
 
 import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.items.Inventory;
+import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
 import net.unethicalite.api.movement.pathfinder.model.BankLocation;
 import net.voids.unethicalite.woodcutting.WoodCutting;
@@ -10,6 +11,10 @@ import javax.inject.Inject;
 
 public class TravelToBank extends Task
 {
+    public TravelToBank(Job job)
+    {
+        super(job);
+    }
 
     @Inject
     WoodCutting plugin;

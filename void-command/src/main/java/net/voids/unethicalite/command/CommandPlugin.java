@@ -1,22 +1,36 @@
 package net.voids.unethicalite.command;
 
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.voids.unethicalite.utils.Utils;
+import net.voids.unethicalite.utils.events.TaskChangeEvent;
 import org.pf4j.Extension;
+
 
 @Slf4j
 @PluginDescriptor(
         name = "void-command",
-        description = "they shall all fear me."
+        description = "command them all."
 )
 @PluginDependency(Utils.class)
 @Extension
 public class CommandPlugin extends Plugin
 {
-    private SocketCommunication socket = new SocketCommunication();
+    private final SocketCommunication socket = SocketCommunication.getInstance();
+
+    private final State state = State.getInstance();
+
+
+    @Subscribe
+    private void onTaskChange(TaskChangeEvent event)
+    {
+        state.onTaskChange(event);
+    }
+
+
 
 
     @Override

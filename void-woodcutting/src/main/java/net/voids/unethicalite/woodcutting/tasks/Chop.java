@@ -1,9 +1,6 @@
 package net.voids.unethicalite.woodcutting.tasks;
 
-//import net.runelite.api.Tile;
-import net.runelite.api.Animation;
 import net.runelite.api.AnimationID;
-import net.runelite.api.Tile;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
@@ -13,18 +10,19 @@ import net.unethicalite.api.entities.TileObjects;
 import net.unethicalite.api.movement.Movement;
 import net.unethicalite.api.movement.Reachable;
 import net.unethicalite.api.scene.Tiles;
+import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
-import net.voids.unethicalite.woodcutting.WoodCutting;
 
-import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Optional;
 
+
 public class Chop extends Task
 {
-    @Inject
-    WoodCutting plugin;
-
+    public Chop(Job job)
+    {
+        super(job);
+    }
 
     private WorldPoint currentTreePosition;
 
@@ -82,13 +80,13 @@ public class Chop extends Task
         Time.sleepTick();
 
         //wait until starts swinging
-        Time.sleepTicksUntil(()->
+        Time.sleepTicksUntil(() ->
                 Players.getLocal().isAnimating()
                         && Players.getLocal().getAnimation() == AnimationID.WOODCUTTING_BRONZE,
                 10);
 
         //wait until stops swinging axe
-        Time.sleepTicksUntil(()->
+        Time.sleepTicksUntil(() ->
                 !Players.getLocal().isAnimating()
                         || Players.getLocal().getAnimation() != AnimationID.WOODCUTTING_BRONZE,
                 30);

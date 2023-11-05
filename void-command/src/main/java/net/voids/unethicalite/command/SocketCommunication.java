@@ -18,6 +18,23 @@ import java.util.TimerTask;
 @Slf4j
 public class SocketCommunication
 {
+    private static SocketCommunication socketCommunication;
+
+    public static SocketCommunication getInstance()
+    {
+        if (socketCommunication == null)
+        {
+            socketCommunication = new SocketCommunication();
+        }
+
+        return socketCommunication;
+    }
+
+
+    private static final State state = State.getInstance();
+
+
+
     @Getter
     private Socket socket = IO.socket(URI.create("ws://localhost:49201/osrsplugin"));
 
@@ -27,27 +44,27 @@ public class SocketCommunication
     private Timer timer;
 
 
-
-    public SocketCommunication()
+    private SocketCommunication()
     {
         socket.connect();
 
-        if(Game.getGameAccount() != null)
+        if (Game.getGameAccount() != null)
         {
             identify();
         }
     }
 
 
-    public void identify() {
+    public void identify()
+    {
 
-        if(Game.getGameAccount() != null && Game.getGameAccount().getUsername() != null)
+        if (Game.getGameAccount() != null && Game.getGameAccount().getUsername() != null)
         {
             try
             {
                 JSONObject payload = new JSONObject();
-                payload.put("username",Game.getGameAccount().getUsername());
-                socket.emit("identify",payload);
+                payload.put("username", Game.getGameAccount().getUsername());
+                socket.emit("identify", payload);
             }
             catch (JSONException e)
             {
@@ -56,12 +73,26 @@ public class SocketCommunication
         }
     }
 
+    public void reportJobChanged()
+    {
+        log.info("job-changed");
+
+        socket.emit("ACTIVITY:JOB-CHANGED", state.getJobTitle());
+    }
+
+    public void reportTaskChanged()
+    {
+        socket.emit("ACTIVITY:TASK-CHANGED", state.getTaskStatus());
+    }
+
+
+
     public void startHeartbeat()
     {
         if (timer == null)
         {
             timer = new Timer();
-            timer.scheduleAtFixedRate(heartbeat(),0,heartBeatInterval);
+            timer.scheduleAtFixedRate(heartbeat(), 0, heartBeatInterval);
         }
     }
 
@@ -77,19 +108,16 @@ public class SocketCommunication
 
     private TimerTask heartbeat()
     {
-        return new TimerTask() {
+        return new TimerTask()
+        {
             @Override
-            public void run() {
-                if(socket != null)
+            public void run()
+            {
+                if (socket != null)
                 {
                     socket.emit("heartbeat");
                 }
             }
         };
     }
-
-
-
-
-
 }

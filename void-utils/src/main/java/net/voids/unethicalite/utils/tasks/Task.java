@@ -2,9 +2,22 @@ package net.voids.unethicalite.utils.tasks;
 
 import lombok.Getter;
 import  net.voids.unethicalite.utils.api.Activity;
+import net.voids.unethicalite.utils.jobs.Job;
+
+import javax.inject.Inject;
 
 public abstract class Task
 {
+    @Getter
+    protected Job job;
+
+
+    @Inject
+    public Task(Job job)
+    {
+        this.job = job;
+    }
+
     @Getter
     private boolean isSafeToEnd = true;
 

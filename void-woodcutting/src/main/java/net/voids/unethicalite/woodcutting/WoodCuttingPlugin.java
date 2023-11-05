@@ -6,8 +6,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.voids.unethicalite.utils.JobScript;
 import net.voids.unethicalite.utils.Utils;
 import org.pf4j.Extension;
-import javax.inject.Inject;
-import net.voids.unethicalite.woodcutting.WoodCutting;
 
 
 @PluginDescriptor(

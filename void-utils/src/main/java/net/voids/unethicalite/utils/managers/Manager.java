@@ -4,7 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.voids.unethicalite.utils.jobs.Job;
 
 @Slf4j
-public abstract class Manager {
+public abstract class Manager
+{
     private Job currentJob;
     private Job queuedJob;
 

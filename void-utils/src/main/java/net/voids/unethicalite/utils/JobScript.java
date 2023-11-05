@@ -4,17 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
-import net.voids.unethicalite.utils.api.Activity;
+//import net.voids.unethicalite.utils.api.Activity;
 import net.voids.unethicalite.utils.jobs.Job;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Slf4j
-public class JobScript extends Plugin {
+public class JobScript extends Plugin
+{
     protected Job job;
 
     private Future<?> activeTask;

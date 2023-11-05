@@ -5,8 +5,6 @@ import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.managers.Manager;
 import net.voids.unethicalite.woodcutting.WoodCutting; //fails here
 
-import java.util.Queue;
-
 @Slf4j
 public class SkillManager extends Manager
 {
@@ -26,6 +24,7 @@ public class SkillManager extends Manager
     @Override
     public Job getSuitableJob()
     {
-        return new WoodCutting();
+        WoodCutting w = new WoodCutting();
+        return w;
     }
 }

@@ -1,14 +1,14 @@
 package net.voids.unethicalite.utils.jobs;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.unethicalite.client.Static;
 import net.voids.unethicalite.utils.api.SkillMap;
+import net.voids.unethicalite.utils.events.TaskChangeEvent;
 import net.voids.unethicalite.utils.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.google.inject.Injector;
 import org.slf4j.Logger;
 
 //TODO: consider that some tasks may need to be interrupted (e.g) running through a dungeon
@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 
 
 @Slf4j
-public abstract class Job {
-
+public abstract class Job
+{
     protected List<Task> tasks = new ArrayList<>();
 
     @Getter
@@ -31,8 +31,15 @@ public abstract class Job {
     protected SkillMap skillRecommendations;
 
     @Getter
-    @Setter
     public Task currentTask;
+
+
+    private void setCurrentTask(Task task)
+    {
+        currentTask = task;
+        Static.getEventBus().post(new TaskChangeEvent(task));
+    }
+
 
 
     public abstract String getTitle();

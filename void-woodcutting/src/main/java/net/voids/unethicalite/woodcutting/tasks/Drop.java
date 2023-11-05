@@ -1,14 +1,19 @@
 package net.voids.unethicalite.woodcutting.tasks;
 
-import com.google.common.collect.Lists;
 import net.runelite.api.Item;
 import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.items.Inventory;
+import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
 
 import java.util.List;
 
-public class Drop extends Task {
+public class Drop extends Task
+{
+    public Drop(Job job)
+    {
+        super(job);
+    }
 
     @Override
     public String getStatus()
@@ -29,10 +34,10 @@ public class Drop extends Task {
     {
         List<Item> logs = Inventory.getAll(item -> item.getName().equals("Logs"));
 
-        for(Item log : logs)
+        for (Item log : logs)
         {
             log.drop();
-            Time.sleep(250,400);
+            Time.sleep(250, 400);
         }
     }
 }

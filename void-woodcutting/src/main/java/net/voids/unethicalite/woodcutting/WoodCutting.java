@@ -15,17 +15,16 @@ public class WoodCutting extends Job
 {
     public WoodCutting()
     {
-        addTask(new Equip());
-        addTask(new Drop());
-        addTask(new TravelToArea());
-        addTask(new Chop());
+        addTask(new Equip(this));
+        addTask(new Drop(this));
+        addTask(new TravelToArea(this));
+        addTask(new Chop(this));
     }
 
 
     @Override
-    public String getTitle() {
+    public String getTitle()
+    {
         return "woodcutting";
     }
-
-
 }
