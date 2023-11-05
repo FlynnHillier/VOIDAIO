@@ -75,8 +75,6 @@ public class SocketCommunication
 
     public void reportJobChanged()
     {
-        log.info("job-changed");
-
         socket.emit("ACTIVITY:JOB-CHANGED", state.getJobTitle());
     }
 

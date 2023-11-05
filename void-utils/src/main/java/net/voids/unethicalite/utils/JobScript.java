@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
-//import net.voids.unethicalite.utils.api.Activity;
 import net.voids.unethicalite.utils.jobs.Job;
 import org.slf4j.Logger;
 
@@ -32,22 +31,19 @@ public class JobScript extends Plugin
 
     protected void onStart()
     {
-
+        job.start();
     }
 
 
     protected void onStop()
     {
-
+        job.stop();
     }
 
 
     public final void start()
     {
         log.info("Starting script: " + this.getName());
-
-//        currentActivity = Activity.IDLE;
-
         onStart();
     }
 

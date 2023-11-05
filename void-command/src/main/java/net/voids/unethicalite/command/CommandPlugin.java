@@ -6,6 +6,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.voids.unethicalite.utils.Utils;
+import net.voids.unethicalite.utils.events.JobEndEvent;
 import net.voids.unethicalite.utils.events.TaskChangeEvent;
 import org.pf4j.Extension;
 
@@ -30,7 +31,12 @@ public class CommandPlugin extends Plugin
         state.onTaskChange(event);
     }
 
-
+    @Subscribe
+    private void onJobEnd(JobEndEvent event)
+    {
+        log.info("i smell a job-end event!");
+        state.onJobEnd(event);
+    }
 
 
     @Override

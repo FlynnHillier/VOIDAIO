@@ -19,7 +19,11 @@ public abstract class Task
     }
 
     @Getter
-    private boolean isSafeToEnd = true;
+    private final boolean isSafeToEnd = true;
+
+    @Getter
+    private final boolean interruptable = false;
+
 
     public Activity getActivity()
     {

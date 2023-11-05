@@ -22,6 +22,7 @@ public abstract class Manager
         if (currentJob == null)
         {
             currentJob = getSuitableJob();
+            currentJob.start();
         }
         else if (queuedJob == null)
         {
@@ -36,7 +37,9 @@ public abstract class Manager
 
         if (queuedJob != null && currentJob.isSafeToEnd())
         {
+            currentJob.stop();
             currentJob = queuedJob;
+            currentJob.start();
             queuedJob = null;
         }
 

@@ -3,7 +3,9 @@ package net.voids.unethicalite.utils.jobs;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.unethicalite.client.Static;
+import net.voids.unethicalite.utils.api.Activity;
 import net.voids.unethicalite.utils.api.SkillMap;
+import net.voids.unethicalite.utils.events.JobEndEvent;
 import net.voids.unethicalite.utils.events.TaskChangeEvent;
 import net.voids.unethicalite.utils.tasks.Task;
 
@@ -31,16 +33,28 @@ public abstract class Job
     protected SkillMap skillRecommendations;
 
     @Getter
-    public Task currentTask;
+    private Task currentTask;
+
+    @Getter
+    private Activity currentActivity = Activity.IDLE;
+
+    @Getter
+    private Activity previousActivity = Activity.IDLE;
+
+    @Getter
+    private boolean running = false;
 
 
-    private void setCurrentTask(Task task)
+
+    public void start()
     {
-        currentTask = task;
-        Static.getEventBus().post(new TaskChangeEvent(task));
+        setRunning(true);
     }
 
-
+    public void stop()
+    {
+        setRunning(false);
+    }
 
     public abstract String getTitle();
 
@@ -55,6 +69,12 @@ public abstract class Job
 
     public void tick()
     {
+        if (!running)
+        {
+            return;
+        }
+
+
         for (Task task: tasks)
         {
             if (task.validate())
@@ -66,7 +86,6 @@ public abstract class Job
         }
     }
 
-
     protected boolean hasSkillRequirements()
     {
         return skillRequirements.playerHasRequirements();
@@ -77,6 +96,68 @@ public abstract class Job
         return skillRecommendations.playerHasRequirements();
     }
 
+    protected boolean isCurrentActivity(Activity activity)
+    {
+        return currentActivity == activity;
+    }
+
+    protected boolean wasPreviousActivity(Activity activity)
+    {
+        return previousActivity == activity;
+    }
+
+
+    private void setRunning(boolean bool)
+    {
+        if (bool && !running)
+        {
+            //start job
+
+            running = true;
+            for (Task task : tasks)
+            {
+                //register task classes so they can receive game events.
+                Static.getEventBus().register(task);
+            }
+        }
+        else if (!bool && running)
+        {
+            //stop job
+
+            running = false;
+            setCurrentActivity(Activity.IDLE);
+
+            for (Task task : tasks)
+            {
+                //unregister task classes so they cease receiving game events.
+                Static.getEventBus().unregister(task);
+            }
+
+            Static.getEventBus().post(new JobEndEvent());
+        }
+    }
+
+
+    private void setCurrentTask(Task task)
+    {
+        currentTask = task;
+        Static.getEventBus().post(new TaskChangeEvent(task));
+    }
+
+    public void setCurrentActivity(Activity activity)
+    {
+        if (activity != currentActivity)
+        {
+            previousActivity = currentActivity;
+            currentActivity = activity;
+        }
+
+        if (activity != Activity.IDLE)
+        {
+
+        }
+    }
+
 
 //    protected final <T extends Task> void addTask(Class<T> type)
 //    {
@@ -85,7 +166,10 @@ public abstract class Job
 
     protected final void addTask(Task task)
     {
-        //Static.getEventBus().register(task); //Is this necessary? - apparently event-bus allows class / method to subscribe to events
+        if (running)
+        {
+            Static.getEventBus().register(task);
+        }
         tasks.add(task);
     }
 

@@ -3,6 +3,7 @@ package net.voids.unethicalite.command;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.voids.unethicalite.utils.events.JobEndEvent;
 import net.voids.unethicalite.utils.events.TaskChangeEvent;
 
 import javax.inject.Singleton;
@@ -56,6 +57,23 @@ public class State
 
         }
     }
+
+
+    public void onJobEnd(JobEndEvent event)
+    {
+        if (jobTitle != null)
+        {
+            setJobTitle("#NONE");
+        }
+
+        if (taskStatus != null)
+        {
+            setTaskStatus("#NONE");
+        }
+    }
+
+
+
 
     public void setJobTitle(String jobTitle)
     {

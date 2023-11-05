@@ -32,11 +32,15 @@ public class AIO extends Plugin
     Future<?> activeJobTick;
     ExecutorService executor;
 
+    private Job currentJob;
+
+
+
 
     @Subscribe
     private void onGameTick(GameTick event)
     {
-        Job currentJob = sm.tick();
+        currentJob = sm.tick();
 
         if (currentJob != null && (activeJobTick == null || activeJobTick.isDone()))
         {
@@ -46,6 +50,11 @@ public class AIO extends Plugin
 
     public final void start()
     {
+        if (currentJob != null)
+        {
+            currentJob.start();
+        }
+
         log.info("Starting script: " + this.getName());
 //        currentActivity = Activity.IDLE;
     }
@@ -53,12 +62,14 @@ public class AIO extends Plugin
     public final void stop()
     {
         log.info("Stopping script: " + this.getName());
+        currentJob.stop();
     }
 
 
     @Override
     protected void shutDown()
     {
+
         executor.shutdownNow();
         stop();
     }
