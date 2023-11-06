@@ -2,6 +2,8 @@ package net.voids.unethicalite.utils.jobs;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.events.GameTick;
+import net.runelite.client.eventbus.Subscribe;
 import net.unethicalite.client.Static;
 import net.voids.unethicalite.utils.api.Activity;
 import net.voids.unethicalite.utils.api.SkillMap;
@@ -11,6 +13,10 @@ import net.voids.unethicalite.utils.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import org.slf4j.Logger;
 
 //TODO: consider that some tasks may need to be interrupted (e.g) running through a dungeon
@@ -44,6 +50,11 @@ public abstract class Job
     @Getter
     private boolean running = false;
 
+    private Future<?> activeTick;
+
+    private ExecutorService executor;
+
+
 
 
     public void start()
@@ -67,14 +78,20 @@ public abstract class Job
         return currentTask.isSafeToEnd();
     }
 
-    public void tick()
+
+
+    @Subscribe
+    public void onTick(GameTick event)
     {
-        if (!running)
+        if (!running || (activeTick != null && !activeTick.isDone() && !currentTask.isInterruptable()))
         {
             return;
         }
+        activeTick = executor.submit(this::executeTask);
+    }
 
-
+    private void executeTask()
+    {
         for (Task task: tasks)
         {
             if (task.validate())
@@ -85,6 +102,11 @@ public abstract class Job
             }
         }
     }
+
+
+
+
+
 
     protected boolean hasSkillRequirements()
     {
@@ -114,11 +136,14 @@ public abstract class Job
             //start job
 
             running = true;
+            Static.getEventBus().register(this);
             for (Task task : tasks)
             {
                 //register task classes so they can receive game events.
                 Static.getEventBus().register(task);
             }
+
+            executor = Executors.newSingleThreadExecutor();
         }
         else if (!bool && running)
         {
@@ -127,13 +152,17 @@ public abstract class Job
             running = false;
             setCurrentActivity(Activity.IDLE);
 
+            Static.getEventBus().unregister(this);
             for (Task task : tasks)
             {
                 //unregister task classes so they cease receiving game events.
                 Static.getEventBus().unregister(task);
             }
-
             Static.getEventBus().post(new JobEndEvent());
+
+            activeTick.cancel(true);
+            executor.shutdownNow();
+            executor = null;
         }
     }
 

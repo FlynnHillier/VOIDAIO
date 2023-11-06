@@ -14,9 +14,6 @@ public abstract class SkillMap
     private HashMap<Skill, Integer> skills = new HashMap<>();
 
 
-
-
-
     public boolean playerHasRequirements()
     {
         for (HashMap.Entry<Skill, Integer> skillEntry : skills.entrySet())

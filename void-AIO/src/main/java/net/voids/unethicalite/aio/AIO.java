@@ -41,11 +41,6 @@ public class AIO extends Plugin
     private void onGameTick(GameTick event)
     {
         currentJob = sm.tick();
-
-        if (currentJob != null && (activeJobTick == null || activeJobTick.isDone()))
-        {
-            executor.submit(currentJob::tick);
-        }
     }
 
     public final void start()

@@ -1,32 +1,18 @@
 package net.voids.unethicalite.utils;
 
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.GameTick;
-import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.voids.unethicalite.utils.jobs.Job;
 import org.slf4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 @Slf4j
 public class JobScript extends Plugin
 {
     protected Job job;
-
-    private Future<?> activeTask;
     private ExecutorService executor;
-
-    @Subscribe
-    private void onGameTick(GameTick event)
-    {
-        if (activeTask == null || activeTask.isDone())
-        {
-            activeTask = executor.submit(job::tick);
-        }
-    }
 
 
     protected void onStart()

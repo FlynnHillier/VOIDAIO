@@ -5,6 +5,7 @@ import  net.voids.unethicalite.utils.api.Activity;
 import net.voids.unethicalite.utils.jobs.Job;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 
 public abstract class Task
 {
@@ -22,7 +23,13 @@ public abstract class Task
     private final boolean isSafeToEnd = true;
 
     @Getter
-    private final boolean interruptable = false;
+    private final ArrayList<Class<Task>> interruptableBy = new ArrayList<>();
+
+
+    public final boolean isInterruptable()
+    {
+        return !interruptableBy.isEmpty();
+    }
 
 
     public Activity getActivity()
