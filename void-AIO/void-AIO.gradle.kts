@@ -11,6 +11,7 @@ plugins {
 dependencies {
     implementation(project(":void-utils"))
     implementation(project(":void-woodcutting"))
+    implementation(project(":void-command"))
     implementation("io.socket:socket.io-client:2.1.0")
 }
 
