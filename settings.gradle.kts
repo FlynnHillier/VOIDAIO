@@ -4,6 +4,7 @@ include("void-utils")
 include("void-woodcutting")
 include("void-AIO")
 include("void-command")
+include("void-cowkill")
 
 for (project in rootProject.children) {
     project.apply {
