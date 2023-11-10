@@ -1,13 +1,13 @@
 package net.voids.unethicalite.woodcutting.tasks;
 
 import net.runelite.api.coords.WorldArea;
-import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.entities.Players;
 import net.unethicalite.api.items.Inventory;
-import net.unethicalite.api.movement.Movement;
 import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
 import net.voids.unethicalite.woodcutting.WoodCutting;
+import net.voids.unethicalite.utils.api.VoidMovement;
+
 
 import javax.inject.Inject;
 
@@ -39,8 +39,6 @@ public class TravelToArea extends Task
     @Override
     public void execute()
     {
-        Movement.walkTo(TREE_PATCH_LUMBRIDGE);
-
-        Time.sleepTicksUntil(() -> TREE_PATCH_LUMBRIDGE.contains(Players.getLocal().getWorldLocation()), 30);
+        VoidMovement.walkToArea(TREE_PATCH_LUMBRIDGE, 100);
     }
 }

@@ -38,9 +38,12 @@ public class Chop extends Task
     @Override
     public boolean validate()
     {
+
         return currentTreePosition == null
-                || Arrays.stream(Tiles.getAt(currentTreePosition).getGameObjects()).findAny().isEmpty()
-                || !Arrays.stream(Tiles.getAt(currentTreePosition).getGameObjects()).findFirst().get().hasAction("Chop down");
+            || Arrays.stream(Tiles.getAt(currentTreePosition).getGameObjects()).findAny().isEmpty()
+            || !Arrays.stream(Tiles.getAt(currentTreePosition).getGameObjects()).findFirst().get().hasAction("Chop down")
+                || !Players.getLocal().isAnimating()
+                || Players.getLocal().getAnimation() != AnimationID.WOODCUTTING_BRONZE;
     }
 
     @Override

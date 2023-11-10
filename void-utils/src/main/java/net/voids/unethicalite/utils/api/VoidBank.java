@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class VoidBank
 {
+    private static int DEFAULT_BANK_OPEN_TIMEOUT = 20;
+
+
     public static void depositAll(String... names)
     {
         depositAll(true, names);
@@ -114,7 +117,7 @@ public class VoidBank
      */
     public static boolean sleepUntilBankIsOpen()
     {
-        return sleepUntilBankIsOpen(5);
+        return sleepUntilBankIsOpen(DEFAULT_BANK_OPEN_TIMEOUT);
     }
 
     /**
@@ -164,6 +167,11 @@ public class VoidBank
      */
     public static boolean openBankAtTile(TileObject tileObject)
     {
+        return openBankAtTile(tileObject, DEFAULT_BANK_OPEN_TIMEOUT);
+    }
+
+    public static boolean openBankAtTile(TileObject tileObject, int timeout)
+    {
         if (!tileObjectIsBank(tileObject))
         {
             return false;
@@ -176,7 +184,7 @@ public class VoidBank
 
         tileObject.interact("Bank");
 
-        if (!sleepUntilBankIsOpen())
+        if (!sleepUntilBankIsOpen(timeout))
         {
             return false;
         }
@@ -186,6 +194,7 @@ public class VoidBank
         Time.sleepTick();
         return true;
     }
+
 
     /**
      *

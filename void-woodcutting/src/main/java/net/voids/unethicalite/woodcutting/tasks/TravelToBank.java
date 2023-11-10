@@ -1,7 +1,8 @@
 package net.voids.unethicalite.woodcutting.tasks;
 
-import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.items.Inventory;
+import net.voids.unethicalite.utils.api.VoidBank;
+import net.voids.unethicalite.utils.api.VoidMovement;
 import net.voids.unethicalite.utils.jobs.Job;
 import net.voids.unethicalite.utils.tasks.Task;
 import net.unethicalite.api.movement.pathfinder.model.BankLocation;
@@ -29,13 +30,13 @@ public class TravelToBank extends Task
     public boolean validate()
     {
         return Inventory.isFull()
-                && BankLocation.getNearest() != null;
+                && BankLocation.getNearest() != null
+                && !VoidBank.nearestBankIsInteractable();
     }
 
     @Override
     public void execute()
     {
-        plugin.getLogger().info("you should bank.");
-        Time.sleepTicksUntil(() -> !Inventory.isFull(), 10);
+        VoidMovement.walkToNearestBank();
     }
 }

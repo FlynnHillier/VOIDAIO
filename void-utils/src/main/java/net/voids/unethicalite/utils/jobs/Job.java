@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
@@ -48,13 +49,14 @@ public abstract class Job
     private Activity previousActivity = Activity.IDLE;
 
     @Getter
+    private Activity antepenultimateActivity = Activity.IDLE;
+
+    @Getter
     private boolean running = false;
 
     private Future<?> activeTick;
 
     private ExecutorService executor;
-
-
 
 
     public void start()
@@ -78,35 +80,39 @@ public abstract class Job
         return currentTask.isSafeToEnd();
     }
 
-
-
     @Subscribe
     public void onTick(GameTick event)
     {
-        if (!running || (activeTick != null && !activeTick.isDone() && !currentTask.isInterruptable()))
+        if (!running || (activeTick != null && !activeTick.isDone() && currentTask != null && !currentTask.isInterruptable()))
         {
+            //no need to validate. something is still occuring and is not interruptable.
             return;
         }
-        activeTick = executor.submit(this::executeTask);
-    }
 
-    private void executeTask()
-    {
-        for (Task task: tasks)
+        for (Task task: tasks.stream().filter(task -> currentTask == null || !currentTask.isInterruptable() ||  currentTask.getInterruptableBy().contains(task.getClass())).collect(Collectors.toList()))
         {
             if (task.validate())
             {
                 setCurrentTask(task);
-                task.execute();
+                getLogger().info(getTitle() + " : " + task.getStatus());
+                if (task.getActivity() != null)
+                {
+                    setCurrentActivity(task.getActivity());
+                }
+                currentTask = task;
+                if (activeTick != null && !activeTick.isDone())
+                {
+                    log.info("!!interrupting active tick!!");
+                    activeTick.cancel(true);
+                }
+                activeTick = executor.submit(() -> {
+                    task.execute();
+                    currentTask = null;
+                });
                 break;
             }
         }
     }
-
-
-
-
-
 
     protected boolean hasSkillRequirements()
     {
@@ -118,14 +124,19 @@ public abstract class Job
         return skillRecommendations.playerHasRequirements();
     }
 
-    protected boolean isCurrentActivity(Activity activity)
+    public boolean isCurrentActivity(Activity activity)
     {
         return currentActivity == activity;
     }
 
-    protected boolean wasPreviousActivity(Activity activity)
+    public boolean wasPreviousActivity(Activity activity)
     {
         return previousActivity == activity;
+    }
+
+    public boolean wasAntepenultimateActivity(Activity activity)
+    {
+        return antepenultimateActivity == activity;
     }
 
 
@@ -160,7 +171,7 @@ public abstract class Job
             }
             Static.getEventBus().post(new JobEndEvent());
 
-            activeTick.cancel(true);
+            activeTick.cancel(true); //TODO: this does not seem to be cancelling the currently active tick.
             executor.shutdownNow();
             executor = null;
         }
@@ -177,6 +188,7 @@ public abstract class Job
     {
         if (activity != currentActivity)
         {
+            antepenultimateActivity = previousActivity;
             previousActivity = currentActivity;
             currentActivity = activity;
         }

@@ -6,6 +6,7 @@ import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.unethicalite.api.commons.Rand;
 import net.unethicalite.api.commons.Time;
+import net.unethicalite.api.coords.PolygonalArea;
 import net.unethicalite.api.entities.Players;
 import net.unethicalite.api.movement.Movement;
 import net.unethicalite.api.movement.pathfinder.model.BankLocation;
@@ -122,6 +123,50 @@ public class VoidMovement
 
         interrupted = false;
     }
+
+
+
+    public static boolean walkToPolygonArea(
+            PolygonalArea polygonArea)
+    {
+        return walkToPolygonArea(polygonArea, DEFAULT_WALKTO_TIMEOUT);
+    }
+
+    public static boolean walkToPolygonArea(
+            PolygonalArea polygonArea,
+            int tickTimeout)
+    {
+        int start = Static.getClient().getTickCount();
+
+        do
+        {
+            if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
+            {
+                Movement.walkTo(polygonArea.getRandomTile());
+
+                if (!Players.getLocal().isMoving())
+                {
+                    Time.sleepTick();
+                }
+            }
+
+            Time.sleepTick();
+        } while (!interrupted
+                && !polygonArea.contains(Players.getLocal().getWorldLocation())
+                && Static.getClient().getTickCount() <= start + tickTimeout
+                && (Static.getClient().getGameState() == GameState.LOADING
+                || Static.getClient().getGameState() == GameState.LOGGED_IN));
+
+        interrupted = false;
+
+        if (Static.getClient().getTickCount() >= start + tickTimeout)
+        {
+            return false;
+        }
+        return true;
+    }
+
+
 
 
 

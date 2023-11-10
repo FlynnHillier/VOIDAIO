@@ -23,7 +23,7 @@ public abstract class Task
     private final boolean isSafeToEnd = true;
 
     @Getter
-    private final ArrayList<Class<Task>> interruptableBy = new ArrayList<>();
+    protected ArrayList<Class<? extends Task>> interruptableBy = new ArrayList<>();
 
 
     public final boolean isInterruptable()
