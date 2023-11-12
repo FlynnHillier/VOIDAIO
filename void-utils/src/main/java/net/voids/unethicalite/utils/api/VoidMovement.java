@@ -2,6 +2,7 @@ package net.voids.unethicalite.utils.api;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
+import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.unethicalite.api.commons.Rand;
@@ -9,6 +10,7 @@ import net.unethicalite.api.commons.Time;
 import net.unethicalite.api.coords.PolygonalArea;
 import net.unethicalite.api.entities.Players;
 import net.unethicalite.api.movement.Movement;
+import net.unethicalite.api.movement.Reachable;
 import net.unethicalite.api.movement.pathfinder.model.BankLocation;
 import net.unethicalite.client.Static;
 
@@ -18,7 +20,7 @@ public class VoidMovement
 {
 
     private static final int DEFAULT_WALKTO_TIMEOUT = 100; //the default tick timeout for a walkTo event.
-    private static final int DESTINATION_DISTANCE = 8; //distance to get inside before ceasing execution.
+    private static final int DESTINATION_DISTANCE = 3; //distance to get inside before ceasing execution.
 
     public static boolean interrupted;
 
@@ -59,43 +61,38 @@ public class VoidMovement
     {
         int start = Static.getClient().getTickCount();
 
+        WorldPoint mutatedDestination = destination;
         if (radius > 0)
         {
-            destination =
+            mutatedDestination =
                     destination.dx(Rand.nextInt(-radius, radius + 1)).dy(Rand.nextInt(-radius, radius + 1));
         }
 
         do
         {
-            if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
-            {
-                Movement.walkTo(destination);
-
-                if (!Players.getLocal().isMoving())
-                {
-                    Time.sleepTick();
-                }
-            }
+            walkTowardsPoint(mutatedDestination);
 
             Time.sleepTick();
         } while (!interrupted
-                && Players.getLocal().distanceTo(destination) > destinationDistance
                 && Static.getClient().getTickCount() <= start + tickTimeout
+                && Players.getLocal().distanceTo(mutatedDestination) > destinationDistance
                 && (Static.getClient().getGameState() == GameState.LOADING
-                || Static.getClient().getGameState() == GameState.LOGGED_IN));
+                || Static.getClient().getGameState() == GameState.LOGGED_IN)
+
+        );
 
         interrupted = false;
     }
 
 
-    public static void walkToArea(
+    public static boolean walkToArea(
             WorldArea worldArea
     )
     {
-        walkToArea(worldArea, DEFAULT_WALKTO_TIMEOUT);
+        return walkToArea(worldArea, DEFAULT_WALKTO_TIMEOUT);
     }
 
-    public static void walkToArea(
+    public static boolean walkToArea(
             WorldArea worldArea,
             int tickTimeout)
     {
@@ -103,15 +100,7 @@ public class VoidMovement
 
         do
         {
-            if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
-            {
-                Movement.walkTo(worldArea);
-
-                if (!Players.getLocal().isMoving())
-                {
-                    Time.sleepTick();
-                }
-            }
+            walkTowardsArea(worldArea);
 
             Time.sleepTick();
         } while (!interrupted
@@ -121,7 +110,10 @@ public class VoidMovement
                 || Static.getClient().getGameState() == GameState.LOGGED_IN));
 
 
+        final boolean wasInterrupted = interrupted;
         interrupted = false;
+        return !wasInterrupted && Static.getClient().getTickCount() <= start + tickTimeout;
+
     }
 
 
@@ -140,15 +132,7 @@ public class VoidMovement
 
         do
         {
-            if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
-            {
-                Movement.walkTo(polygonArea.getRandomTile());
-
-                if (!Players.getLocal().isMoving())
-                {
-                    Time.sleepTick();
-                }
-            }
+            walkTowardsPoint(polygonArea.getRandomTile());
 
             Time.sleepTick();
         } while (!interrupted
@@ -164,6 +148,40 @@ public class VoidMovement
             return false;
         }
         return true;
+    }
+
+
+    public static boolean walkToNPC(NPC npc)
+    {
+        return walkToNPC(npc, DESTINATION_DISTANCE);
+    }
+
+    public static boolean walkToNPC(NPC npc, int stopAtDistanceFromNpc)
+    {
+        return walkToNPC(npc, stopAtDistanceFromNpc, DEFAULT_WALKTO_TIMEOUT);
+    }
+
+
+
+    public static boolean walkToNPC(NPC npc, int stopAtDistanceFromNpc, int tickTimeout)
+    {
+        int start = Static.getClient().getTickCount();
+
+        do
+        {
+            walkTowardsPoint(npc.getWorldLocation());
+            Time.sleepTick();
+        } while (!interrupted
+                && Static.getClient().getTickCount() <= start + tickTimeout
+                && (
+                    Players.getLocal().getWorldLocation().distanceTo(npc.getWorldLocation()) > stopAtDistanceFromNpc
+                    || !Reachable.isWalkable(npc.getWorldLocation())
+            )
+        );
+
+        interrupted = false;
+
+        return Static.getClient().getTickCount() <= start + tickTimeout;
     }
 
 
@@ -196,6 +214,32 @@ public class VoidMovement
 
         walkToBank(BankLocation.getNearest());
         return true;
+    }
+
+    private static void walkTowardsArea(WorldArea worldArea)
+    {
+        if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
+        {
+            Movement.walkTo(worldArea);
+
+            if (!Players.getLocal().isMoving())
+            {
+                Time.sleepTick();
+            }
+        }
+    }
+
+    private static void walkTowardsPoint(WorldPoint worldPoint)
+    {
+        if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
+        {
+            Movement.walkTo(worldPoint);
+
+            if (!Players.getLocal().isMoving())
+            {
+                Time.sleepTick();
+            }
+        }
     }
 
 }

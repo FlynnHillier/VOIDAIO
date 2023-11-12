@@ -5,6 +5,7 @@ include("void-woodcutting")
 include("void-AIO")
 include("void-command")
 include("void-cowkill")
+include("void-ernest-the-chicken")
 
 for (project in rootProject.children) {
     project.apply {
