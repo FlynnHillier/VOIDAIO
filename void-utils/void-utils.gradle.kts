@@ -1,4 +1,4 @@
-version = "0.0.1"
+version = "0.0.2"
 
 project.extra["PluginName"] = "void-utils"
 project.extra["PluginDescription"] = "Void utility plugin."
