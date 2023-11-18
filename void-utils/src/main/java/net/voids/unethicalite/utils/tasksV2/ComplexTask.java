@@ -1,5 +1,7 @@
 package net.voids.unethicalite.utils.tasksV2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -7,30 +9,29 @@ import java.util.Optional;
  */
 public abstract class ComplexTask extends Task
 {
-    protected Task[] subTasks;
+    protected List<Task> subTasks = new ArrayList<>();
     private Task activeSubTask;
 
     protected boolean failOnNoValidate = false; //if no subTask is found to be validated, and the task is not yet complete.
 
 
-    public ComplexTask(String descriptor, Task[] subTask)
+    public ComplexTask(String descriptor)
     {
         super(descriptor);
-        this.subTasks = subTask;
     }
 
     @Override
     public void execute()
     {
-        if (activeSubTask == null || activeSubTask.isComplete())
+        if (activeSubTask == null || activeSubTask.isCompleted())
         {
             //We should set some new activeSubTask
-            if (activeSubTask != null && activeSubTask.isComplete())
+            if (activeSubTask != null && activeSubTask.isCompleted())
             {
-                if (activeSubTask.getSleepOnCompletion() != null)
-                {
-                    activeSubTask.getSleepOnCompletion().sleep();
-                }
+//                if (activeSubTask.getSleepOnCompletion() != null)
+//                {
+//                    activeSubTask.getSleepOnCompletion().sleep();
+//                }
             }
 
             Optional<Task> nextSubTask = getNextSubTask();
@@ -90,7 +91,7 @@ public abstract class ComplexTask extends Task
     {
         for (Task subTask : subTasks)
         {
-            if (subTask.validate())
+            if (subTask.isValidated())
             {
                 return Optional.of(subTask);
             }
@@ -116,6 +117,36 @@ public abstract class ComplexTask extends Task
         this.activeSubTask = task;
     }
 
+
+    /**
+     *
+     * @param task to be added to subTasks.
+     */
+    protected void addSubTask(Task task)
+    {
+        subTasks.add(task);
+    }
+
+    /**
+     * clears all sub-tasks
+     */
+    protected void clearSubTasks()
+    {
+        subTasks = new ArrayList<>();
+    }
+
+
+    @Override
+    public boolean initialise()
+    {
+        if (super.initialise())
+        {
+            clearSubTasks();
+            return true;
+        }
+
+        return false;
+    }
 
 
     /**

@@ -1,5 +1,6 @@
 package net.voids.unethicalite.utils.api;
 
+import kotlin.Pair;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
@@ -13,6 +14,8 @@ import net.unethicalite.api.movement.Movement;
 import net.unethicalite.api.movement.Reachable;
 import net.unethicalite.api.movement.pathfinder.model.BankLocation;
 import net.unethicalite.client.Static;
+
+import java.util.ArrayList;
 
 
 @Slf4j
@@ -216,6 +219,64 @@ public class VoidMovement
         return true;
     }
 
+    public static ArrayList<WorldPoint> getNonBlockedAdjacentTiles(WorldPoint worldPoint)
+    {
+        ArrayList<Pair<Integer, Integer>> vectors = new ArrayList<>();
+
+        vectors.add(new Pair<>(0, 1));
+        vectors.add(new Pair<>(1, 0));
+        vectors.add(new Pair<>(0, -1));
+        vectors.add(new Pair<>(-1, 0));
+
+
+        ArrayList<WorldPoint> nonBlockedAdjacent = new ArrayList<WorldPoint>();
+        for (Pair<Integer, Integer> vector : vectors)
+        {
+            WorldPoint check = new WorldPoint(worldPoint.getX() + vector.component1(), worldPoint.getY() + vector.component2(), worldPoint.getPlane());
+
+            if (!Reachable.isWalled(worldPoint, check) && !Reachable.isObstacle(check))
+            {
+                nonBlockedAdjacent.add(check);
+            }
+        }
+
+
+        return nonBlockedAdjacent;
+    }
+
+
+    public static ArrayList<WorldPoint> getAreaOuterTiles(WorldArea area)
+    {
+        ArrayList<Integer> Xs = new ArrayList<>();
+        for (int i = 0; i < area.getWidth(); ++i)
+        {
+            Xs.add(area.getX() + i);
+        }
+
+        ArrayList<Integer> Ys = new ArrayList<>();
+        for (int i = 0; i < area.getHeight(); ++i)
+        {
+            Ys.add(area.getY() + i);
+        }
+
+        ArrayList<WorldPoint> coordinates = new ArrayList<>();
+        for (Integer x : Xs)
+        {
+            for (Integer y : Ys)
+            {
+                coordinates.add(new WorldPoint(x, y, area.getPlane()));
+            }
+        }
+
+        return coordinates;
+    }
+
+
+
+
+
+
+
     private static void walkTowardsArea(WorldArea worldArea)
     {
         if (!Movement.isWalking() && Static.getClient().getGameState() != GameState.LOADING)
@@ -241,5 +302,4 @@ public class VoidMovement
             }
         }
     }
-
 }

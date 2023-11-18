@@ -17,6 +17,10 @@ public class Failure
     {
         TIMEOUT,
         NO_VALIDATE,
+        NOT_FOUND,
+        CANNOT_REACH,
+        NO_SUCH_ACTION,
+        PATHING,
     }
 
 

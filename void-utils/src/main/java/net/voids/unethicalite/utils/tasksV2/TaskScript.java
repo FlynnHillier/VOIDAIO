@@ -32,8 +32,16 @@ public abstract class TaskScript extends Plugin
         {
             if (!task.isFailed())
             {
-                log.info(task.getDescriptor());
-                task.loop();
+                if (task.isCompleted())
+                {
+                    log.info("completed task.");
+                    stop();
+                }
+                else
+                {
+                    log.info(task.getDescriptor());
+                    task.loop();
+                }
             }
             else
             {
@@ -55,6 +63,7 @@ public abstract class TaskScript extends Plugin
     public final void stop()
     {
         log.info("Stopping script: " + this.getName());
+        task.halt();
         setRunning(false);
     }
 
@@ -69,7 +78,6 @@ public abstract class TaskScript extends Plugin
     @Override
     protected void startUp()
     {
-        log.info("chicken butt");
         executor = Executors.newSingleThreadExecutor();
         start();
     }

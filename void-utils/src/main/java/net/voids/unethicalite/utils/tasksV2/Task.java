@@ -6,6 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+
+
+//TODO:
+// - we want to be able to pass custom validate/completion conditions to generic tasks
+// - this means we should somehow accept
+
+
 
 /**
  * Carry out some task within the game.
@@ -30,18 +38,32 @@ public abstract class Task
     protected int maxFailCount = 0;
 
 
-    @Getter
-    private Time sleepOnCompletion;
+    private BooleanSupplier bespokeValidationCondition;
 
-    private long startMS;
-
-    private int startTick;
+    private BooleanSupplier bespokeCompletionCondition;
 
 
     public Task(String descriptor)
     {
         this.descriptor = descriptor;
     }
+
+
+    public Task withValidationCondition(BooleanSupplier booleanSupplier)
+    {
+        this.bespokeValidationCondition = booleanSupplier;
+
+        return this;
+    }
+
+    public Task withCompletionCondition(BooleanSupplier booleanSupplier)
+    {
+        this.bespokeCompletionCondition = booleanSupplier;
+
+        return this;
+    }
+
+
 
 
     /**
@@ -70,14 +92,12 @@ public abstract class Task
      *
      * @return true if the task is running, and was previously stopped.
      */
-    private boolean initialise()
+    protected boolean initialise()
     {
         if (this.initialised)
         {
             return false;
         }
-
-        this.startMS = System.currentTimeMillis();
 
         this.initialised = true;
         onInitialise();
@@ -95,7 +115,11 @@ public abstract class Task
             initialise();
         }
 
-        this.execute();
+        if (!this.isFailed())
+        {
+            //likely task failed on initialisation.
+            this.execute();
+        }
 
         //TODO:
         // - add functionality here such that tasks can self handle themselves?
@@ -123,16 +147,34 @@ public abstract class Task
         return failable && failure != null;
     }
 
-    /**
-     *
-     * @return true if conditions are satisfied and task should run;
-     */
-    abstract public boolean validate();
 
     /**
-     * Contains the actual script content that provides in-game functionality to the task.
+     *
+     * @return true if all validation conditions are met (both generic and dynamic)
      */
-    abstract protected void execute();
+    public boolean isValidated()
+    {
+        return validationCondition()
+                && (bespokeValidationCondition == null
+                || bespokeValidationCondition.getAsBoolean());
+    }
+
+    public boolean isCompleted()
+    {
+        return completionCondition()
+                && (bespokeCompletionCondition == null
+                || bespokeCompletionCondition.getAsBoolean());
+    }
+
+
+
+
+    /**
+     *
+     * @return true if generic conditions are specified;
+     */
+    abstract protected boolean validationCondition();
+
 
     /**
      * Note: this method should never return true if validate also equates to true at the same time.
@@ -140,7 +182,13 @@ public abstract class Task
      * Therefore, if this is simultaneously considered 'complete' this is pointless.
      * @return true if the task has been completed.
      */
-    public abstract boolean isComplete();
+    public abstract boolean completionCondition();
+
+
+    /**
+     * Contains the actual script content that provides in-game functionality to the task.
+     */
+    abstract protected void execute();
 
 
     /**
@@ -151,7 +199,10 @@ public abstract class Task
     /**
      * execute some code when the task is halted.
      */
-    protected abstract void onHalt();
+    protected void onHalt()
+    {
+        return;
+    }
 
     /**
      *
