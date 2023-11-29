@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 
@@ -21,8 +20,11 @@ import java.util.function.BooleanSupplier;
 @Slf4j
 public abstract class Task
 {
+    @Getter
+    private boolean initialisedAtleastOnce = false;
 
-    private boolean initialised;
+    @Getter
+    private boolean initialised = false;
 
     @Getter
     private Failure failure; //in the event a failure occurs, store it here.
@@ -37,23 +39,12 @@ public abstract class Task
     @Setter
     protected int maxFailCount = 0;
 
-
-    private BooleanSupplier bespokeValidationCondition;
-
     private BooleanSupplier bespokeCompletionCondition;
 
 
     public Task(String descriptor)
     {
         this.descriptor = descriptor;
-    }
-
-
-    public Task withValidationCondition(BooleanSupplier booleanSupplier)
-    {
-        this.bespokeValidationCondition = booleanSupplier;
-
-        return this;
     }
 
     public Task withCompletionCondition(BooleanSupplier booleanSupplier)
@@ -83,7 +74,6 @@ public abstract class Task
             return false;
         }
 
-
         onHalt();
         return true;
     }
@@ -100,6 +90,7 @@ public abstract class Task
         }
 
         this.initialised = true;
+        this.initialisedAtleastOnce = true;
         onInitialise();
         return true;
     }
@@ -108,22 +99,20 @@ public abstract class Task
     /**
      * loops the plugin. will execute code and initialise if necessary.
      */
-    public final void loop()
+    public final int loop()
     {
         if (!this.initialised)
         {
             initialise();
         }
 
-        if (!this.isFailed())
+        if (this.isFailed())
         {
-            //likely task failed on initialisation.
-            this.execute();
+            //task failed on initialisation.
+            return 0;
         }
 
-        //TODO:
-        // - add functionality here such that tasks can self handle themselves?
-        // - e.g task does not rely on complex task to handle failure.
+        return this.execute();
     }
 
 
@@ -150,15 +139,8 @@ public abstract class Task
 
     /**
      *
-     * @return true if all validation conditions are met (both generic and dynamic)
+     * @return true if the generic completion conditions are met, as well as any bespoke conditions.
      */
-    public boolean isValidated()
-    {
-        return validationCondition()
-                && (bespokeValidationCondition == null
-                || bespokeValidationCondition.getAsBoolean());
-    }
-
     public boolean isCompleted()
     {
         return completionCondition()
@@ -167,20 +149,9 @@ public abstract class Task
     }
 
 
-
-
     /**
      *
-     * @return true if generic conditions are specified;
-     */
-    abstract protected boolean validationCondition();
-
-
-    /**
-     * Note: this method should never return true if validate also equates to true at the same time.
-     * The point of the validate method is to insinuate that the task needs to be carried out.
-     * Therefore, if this is simultaneously considered 'complete' this is pointless.
-     * @return true if the task has been completed.
+     * @return true if generic completion conditions are met.
      */
     public abstract boolean completionCondition();
 
@@ -188,7 +159,7 @@ public abstract class Task
     /**
      * Contains the actual script content that provides in-game functionality to the task.
      */
-    abstract protected void execute();
+    abstract protected int execute();
 
 
     /**
@@ -202,16 +173,6 @@ public abstract class Task
     protected void onHalt()
     {
         return;
-    }
-
-    /**
-     *
-     * @param failure - the failure that should be attempted to handle.
-     * @return true if some solution was implemented.
-     */
-    protected Optional<Task> handleFailure(Failure failure)
-    {
-        return Optional.empty();
     }
 
 

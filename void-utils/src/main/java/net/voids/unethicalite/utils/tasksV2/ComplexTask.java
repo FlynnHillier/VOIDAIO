@@ -1,18 +1,21 @@
 package net.voids.unethicalite.utils.tasksV2;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+
+//TODO:
+// - better improve fail handling.
+
 
 /**
  * A task which will itself contain a set of sub-tasks, which it will work through.
  */
 public abstract class ComplexTask extends Task
 {
-    protected List<Task> subTasks = new ArrayList<>();
-    private Task activeSubTask;
+    private SubTask activeSubTask;
 
-    protected boolean failOnNoValidate = false; //if no subTask is found to be validated, and the task is not yet complete.
+    private boolean completed = false;
+
+    private int sleepOnActiveSubTaskCompletion = 0;
 
 
     public ComplexTask(String descriptor)
@@ -20,45 +23,62 @@ public abstract class ComplexTask extends Task
         super(descriptor);
     }
 
+
+    //ensure activeSubTask is not null
     @Override
-    public void execute()
+    protected int execute()
     {
-        if (activeSubTask == null || activeSubTask.isCompleted())
+        if (activeSubTask == null)
         {
-            //We should set some new activeSubTask
-            if (activeSubTask != null && activeSubTask.isCompleted())
-            {
-//                if (activeSubTask.getSleepOnCompletion() != null)
-//                {
-//                    activeSubTask.getSleepOnCompletion().sleep();
-//                }
-            }
-
-            Optional<Task> nextSubTask = getNextSubTask();
-
-            if (nextSubTask.isEmpty())
-            {
-                if (failOnNoValidate)
-                {
-                    failed(Failure.Type.NO_VALIDATE, "could not validate any sub", null);
-                }
-
-                //we did not validate but do not wish to fail, so just return.
-                //hopefully next itteration will activate some task.
-
-                //TODO:
-                // - Add functionality to check for timeout here.
-                return;
-            }
-
-            setActiveSubTask(nextSubTask.get());
+            // this should not happen
+            getLogger().error("active-subtask is null");
+            return -1000;
         }
 
-        if (activeSubTask.isFailed())
+
+        if (activeSubTask.getTask().isCompleted())
         {
-            getLogger().info("failed subtask: " + activeSubTask.getDescriptor());
+            //We should set some new activeSubTask
+            activeSubTask.getTask().halt();
+
+            if (sleepOnActiveSubTaskCompletion != 0)
+            {
+                int sleep = sleepOnActiveSubTaskCompletion;
+                sleepOnActiveSubTaskCompletion = 0;
+                return sleep;
+            }
+
+            Optional<NextTask> nextSubTask = activeSubTask.getNextTask();
+
+            if (nextSubTask.isPresent())
+            {
+                if (nextSubTask.get().getSubTask() instanceof Complete)
+                {
+                    //we should complete complex task
+                    completed = true;
+                    return 0;
+                }
+
+                setActiveSubTask(nextSubTask.get().getSubTask());
+                sleepOnActiveSubTaskCompletion = nextSubTask.get().getSleepOnComplete();
+            }
+            else
+            {
+                if (activeSubTask.isLoopUntilSomeValidNext())
+                {
+                    return 0;
+                }
+
+                failed(Failure.Type.NO_VALIDATE, "could not validate any follow-up task for sub-task: " + activeSubTask.getTask().getDescriptor(), null);
+                return 0;
+            }
+        }
+
+        if (activeSubTask.getTask().isFailed())
+        {
+            getLogger().info("failed subtask: " + activeSubTask.getTask().getDescriptor());
             //Handle task failure if possible.
-            Failure failure = activeSubTask.getFailure();
+            Failure failure = activeSubTask.getTask().getFailure();
 
             if (failure.getMessage() != null)
             {
@@ -66,73 +86,43 @@ public abstract class ComplexTask extends Task
                 getLogger().info(failure.getMessage());
             }
 
-            Optional<Task> solutionTask = handleFailure(failure);
+            Optional<SubTask> solutionTask = activeSubTask.getHandleFailureTask(failure.getType());
 
             if (solutionTask.isEmpty())
             {
-                //No solution was provided. so we dont know what to do here.
+                //No solution was provided. so we don't know what to do here.
                 //Hence fail.
 
                 //TODO:
                 // - Instead of just passing on failed task here, perhaps wrap so handling task
                 // - can distinguish that some sub-task failed.
                 failed(failure.getType(), failure.getMessage(), failure.getResolveToTask());
-                return;
+                return 0;
             }
 
             //update activeSubTask to solution task.
             activeSubTask = solutionTask.get();
         }
 
-        activeSubTask.loop();
+        return activeSubTask.getTask().loop();
     }
 
-    private Optional<Task> getNextSubTask()
-    {
-        for (Task subTask : subTasks)
-        {
-            if (subTask.isValidated())
-            {
-                return Optional.of(subTask);
-            }
-        }
 
-        return Optional.empty();
-    }
 
 
     /**
      *
-     * @param task the task to set as the active sub-task.
+     * @param subTask the subTask to set as the active sub-task.
      */
-    private void setActiveSubTask(Task task)
+    private void setActiveSubTask(SubTask subTask)
     {
-        if (activeSubTask != null && !task.equals(activeSubTask))
+        if (activeSubTask != null && !subTask.equals(activeSubTask))
         {
-            //stop the previous sub task.
-            activeSubTask.halt();
+            //stop the previous sub-task.
+            activeSubTask.getTask().halt();
         }
 
-
-        this.activeSubTask = task;
-    }
-
-
-    /**
-     *
-     * @param task to be added to subTasks.
-     */
-    protected void addSubTask(Task task)
-    {
-        subTasks.add(task);
-    }
-
-    /**
-     * clears all sub-tasks
-     */
-    protected void clearSubTasks()
-    {
-        subTasks = new ArrayList<>();
+        this.activeSubTask = subTask;
     }
 
 
@@ -141,12 +131,39 @@ public abstract class ComplexTask extends Task
     {
         if (super.initialise())
         {
-            clearSubTasks();
+            if (isFailed())
+            {
+                //TODO: handle when fail on initialise;
+                return false;
+            }
+
+
+
+            activeSubTask = initialiseSubTasks();
             return true;
         }
 
         return false;
     }
+
+    @Override
+    protected void onHalt()
+    {
+        super.onHalt();
+        if (activeSubTask != null)
+        {
+            activeSubTask.getTask().halt();
+            activeSubTask = null;
+        }
+    }
+
+
+    /**
+     * used to construct new SubTask classes, and specify their necessary relations
+     *
+     * @return the SubTask that should start
+     */
+    protected abstract SubTask initialiseSubTasks();
 
 
     /**
@@ -161,6 +178,18 @@ public abstract class ComplexTask extends Task
             return descriptor;
         }
 
-        return descriptor + " : " + activeSubTask.getDescriptor();
+        return descriptor + " : " + activeSubTask.getTask().getDescriptor();
+    }
+
+    @Override
+    protected void onInitialise()
+    {
+
+    }
+
+    @Override
+    public boolean completionCondition()
+    {
+        return completed;
     }
 }
