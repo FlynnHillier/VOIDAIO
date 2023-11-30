@@ -16,11 +16,12 @@ public class Failure
     public enum Type
     {
         TIMEOUT,
-        NO_VALIDATE,
+        NO_NEXT_TASK,
         NOT_FOUND,
         CANNOT_REACH,
         NO_SUCH_ACTION,
         PATHING,
+        WIDGET_NOT_PRESENT,
     }
 
 

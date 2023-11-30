@@ -11,7 +11,7 @@ import java.util.Optional;
  */
 public abstract class ComplexTask extends Task
 {
-    private SubTask activeSubTask;
+    private Task activeSubTask;
 
     private boolean completed = false;
 
@@ -36,10 +36,10 @@ public abstract class ComplexTask extends Task
         }
 
 
-        if (activeSubTask.getTask().isCompleted())
+        if (activeSubTask.isCompleted())
         {
             //We should set some new activeSubTask
-            activeSubTask.getTask().halt();
+            activeSubTask.halt();
 
             if (sleepOnActiveSubTaskCompletion != 0)
             {
@@ -48,45 +48,48 @@ public abstract class ComplexTask extends Task
                 return sleep;
             }
 
-            Optional<NextTask> nextSubTask = activeSubTask.getNextTask();
+            Optional<Task> nextSubTask = activeSubTask.config().onCompleteGetNextTask();
 
             if (nextSubTask.isPresent())
             {
-                if (nextSubTask.get().getSubTask() instanceof Complete)
+                Task next = nextSubTask.get();
+
+
+                if (next instanceof Complete)
                 {
                     //we should complete complex task
                     completed = true;
                     return 0;
                 }
 
-                setActiveSubTask(nextSubTask.get().getSubTask());
-                sleepOnActiveSubTaskCompletion = nextSubTask.get().getSleepOnComplete();
+                setActiveSubTask(next);
+                sleepOnActiveSubTaskCompletion = next.config().sleepOnComplete;
             }
             else
             {
-                if (activeSubTask.isLoopUntilSomeValidNext())
+                if (activeSubTask.config().loopUntilSomeNextTaskShouldRun)
                 {
                     return 0;
                 }
 
-                failed(Failure.Type.NO_VALIDATE, "could not validate any follow-up task for sub-task: " + activeSubTask.getTask().getDescriptor(), null);
+                failed(Failure.Type.NO_NEXT_TASK, "could not validate any follow-up task for sub-task: " + activeSubTask.getDescriptor(), null);
                 return 0;
             }
         }
 
-        if (activeSubTask.getTask().isFailed())
+        if (activeSubTask.isFailed())
         {
-            getLogger().info("failed subtask: " + activeSubTask.getTask().getDescriptor());
+            getLogger().info("failed subtask: " + activeSubTask.getDescriptor());
             //Handle task failure if possible.
-            Failure failure = activeSubTask.getTask().getFailure();
+            Failure failure = activeSubTask.getFailure();
 
             if (failure.getMessage() != null)
             {
                 //log failure message if present
-                getLogger().info(failure.getMessage());
+                getLogger().info("> " + failure.getMessage());
             }
 
-            Optional<SubTask> solutionTask = activeSubTask.getHandleFailureTask(failure.getType());
+            Optional<Task> solutionTask = activeSubTask.config().onFailGetNextTask(failure.getType());
 
             if (solutionTask.isEmpty())
             {
@@ -104,7 +107,7 @@ public abstract class ComplexTask extends Task
             activeSubTask = solutionTask.get();
         }
 
-        return activeSubTask.getTask().loop();
+        return activeSubTask.loop();
     }
 
 
@@ -114,12 +117,12 @@ public abstract class ComplexTask extends Task
      *
      * @param subTask the subTask to set as the active sub-task.
      */
-    private void setActiveSubTask(SubTask subTask)
+    private void setActiveSubTask(Task subTask)
     {
         if (activeSubTask != null && !subTask.equals(activeSubTask))
         {
             //stop the previous sub-task.
-            activeSubTask.getTask().halt();
+            activeSubTask.halt();
         }
 
         this.activeSubTask = subTask;
@@ -137,8 +140,6 @@ public abstract class ComplexTask extends Task
                 return false;
             }
 
-
-
             activeSubTask = initialiseSubTasks();
             return true;
         }
@@ -152,7 +153,7 @@ public abstract class ComplexTask extends Task
         super.onHalt();
         if (activeSubTask != null)
         {
-            activeSubTask.getTask().halt();
+            activeSubTask.halt();
             activeSubTask = null;
         }
     }
@@ -163,7 +164,7 @@ public abstract class ComplexTask extends Task
      *
      * @return the SubTask that should start
      */
-    protected abstract SubTask initialiseSubTasks();
+    protected abstract Task initialiseSubTasks();
 
 
     /**
@@ -178,7 +179,7 @@ public abstract class ComplexTask extends Task
             return descriptor;
         }
 
-        return descriptor + " : " + activeSubTask.getTask().getDescriptor();
+        return descriptor + " : " + activeSubTask.getDescriptor();
     }
 
     @Override

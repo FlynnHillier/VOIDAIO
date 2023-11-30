@@ -5,8 +5,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
-import java.util.function.BooleanSupplier;
-
 
 //TODO:
 // - we want to be able to pass custom validate/completion conditions to generic tasks
@@ -20,6 +18,14 @@ import java.util.function.BooleanSupplier;
 @Slf4j
 public abstract class Task
 {
+    /**
+     * a simple string describing what the task is doing.
+     */
+    @Getter
+    protected final String descriptor;
+
+    private final TaskConfig taskConfig = new TaskConfig();
+
     @Getter
     private boolean initialisedAtleastOnce = false;
 
@@ -29,8 +35,6 @@ public abstract class Task
     @Getter
     private Failure failure; //in the event a failure occurs, store it here.
 
-    protected boolean failable = false; //specify wether it is possible for the task to fail.
-
     @Setter
     @Getter
     protected int failCount = 0;
@@ -39,29 +43,17 @@ public abstract class Task
     @Setter
     protected int maxFailCount = 0;
 
-    private BooleanSupplier bespokeCompletionCondition;
-
 
     public Task(String descriptor)
     {
         this.descriptor = descriptor;
     }
 
-    public Task withCompletionCondition(BooleanSupplier booleanSupplier)
+    public TaskConfig config()
     {
-        this.bespokeCompletionCondition = booleanSupplier;
-
-        return this;
+        return this.taskConfig;
     }
 
-
-
-
-    /**
-     * a simple string describing what the task is doing.
-     */
-    @Getter
-    final String descriptor;
 
     /**
      *
@@ -84,6 +76,9 @@ public abstract class Task
      */
     protected boolean initialise()
     {
+        //TODO:
+        // - add some validation code here that ensures that next task does not have some invalid configuration.
+
         if (this.initialised)
         {
             return false;
@@ -133,7 +128,7 @@ public abstract class Task
      */
     public boolean isFailed()
     {
-        return failable && failure != null;
+        return failure != null;
     }
 
 
@@ -143,9 +138,7 @@ public abstract class Task
      */
     public boolean isCompleted()
     {
-        return completionCondition()
-                && (bespokeCompletionCondition == null
-                || bespokeCompletionCondition.getAsBoolean());
+        return completionCondition();
     }
 
 

@@ -1,25 +1,62 @@
 package net.voids.unethicalite.utils.tasksV2;
 
-import lombok.Getter;
+import lombok.Builder;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 public class NextTask
 {
-    @Getter
-    private final SubTask subTask;
+    private final Task task;
 
-    @Getter
-    private final BooleanSupplier condition;
-
-    @Getter
-    private final int sleepOnComplete;
+    @Builder.Default
+    private final Function<Failure.Type, Boolean> condition;
 
 
-    public NextTask(SubTask task, BooleanSupplier condition, int sleepOnComplete)
+    public static OnFailNextTask onFail(Task task, Failure.Type failTypeToRunOn)
     {
-        this.subTask = task;
+        return new OnFailNextTask(
+                task,
+                failTypeToRunOn
+        );
+    }
+
+    public static OnCompleteNextTask onComplete(Task task)
+    {
+        //default condition (always run)
+        return onComplete(task, () -> true);
+    }
+
+
+    public static OnCompleteNextTask onComplete(Task task, BooleanSupplier condition)
+    {
+        return new OnCompleteNextTask(
+                task,
+                condition
+        );
+    }
+
+
+    protected NextTask(Task task, Function<Failure.Type, Boolean> condition)
+    {
+        this.task = task;
         this.condition = condition;
-        this.sleepOnComplete = sleepOnComplete;
+    }
+
+
+    public boolean shouldRun()
+    {
+        return shouldRun(null);
+    }
+
+    public boolean shouldRun(Failure.Type failType)
+    {
+        return condition.apply(failType);
+    }
+
+
+    public Task get()
+    {
+        return task;
     }
 }
